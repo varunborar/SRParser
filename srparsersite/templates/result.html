@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Result</title>
+    <style>
+        #result {
+            display: none;
+        }
+
+        body{
+            background-color: #fafafa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            font-family: sans-serif;
+        }
+        .table-wrapper{
+            overflow-x: auto;
+            width: 100%;
+        }
+
+        #s-table {
+            font-family: Arial, Helvetica, sans-serif;
+            border-collapse: collapse;
+            scroll-behavior: auto;
+            width: 540px;
+            margin:20px;
+        }
+
+        #s-table td, #customers th {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        #s-table tr:nth-child(even){background-color: #f2f2f2;}
+
+        #s-table tr:hover {background-color: #ddd;}
+
+        #s-table th {
+            padding: 12px;
+            margin:2px;
+            text-align: left;
+            background-color: #0062ff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+  <div id="result">
+      {{ data }}
+  </div>
+  <div class="table-wrapper">
+      <table id="s-table">
+          <tr>
+              <th>
+                  Stack
+              </th>
+              <th>
+                  Input Buffer
+              </th>
+              <th>
+                  Action
+              </th>
+          </tr>
+      </table>
+  </div>
+</body>
+<script>
+    const result = document.getElementById("result")
+    const rawData = result.innerText
+    const data = JSON.parse(rawData);
+
+    console.log(data);
+    createTable(data);
+
+    function createTable(data){
+        const table = document.getElementById('s-table');
+        let rows = 1;
+        for (let action of data){
+            const row = table.insertRow(rows);
+            rows += 1;
+
+            const id = row.insertCell(0);
+            id.innerText = action["Stack"];
+
+            const fname = row.insertCell(1);
+            fname.innerText = action["Input Buffer"];
+
+            const lname = row.insertCell(2);
+            lname.innerText = action["Action"];
+        }
+    }
+</script>
+</html>

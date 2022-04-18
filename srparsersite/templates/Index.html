@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SR Parser</title>
+    <style>
+        body {
+            background-color: #fafafa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            font-family: sans-serif;
+        }
+        
+        form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            background-color: #eeeeee;
+            box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            margin: 3px;
+            font-size: 16px;
+        }
+        
+        form textarea {
+            resize: none;
+        }
+        
+        form textarea,
+        form input {
+            padding: 10px;
+            margin: 10px;
+            border: 2px;
+            /* box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.3); */
+            border-radius: 4px;
+        }
+        
+        form input {
+            width: 90%;
+            margin: 10px;
+        }
+        
+        form label {
+            margin: 3px;
+            color: black;
+        }
+        
+        form button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px;
+            border: 2px;
+            border-radius: 4px;
+            background-color: #0062ff;
+            color: white;
+        }
+        
+        .tut {
+            margin-top: 30px;
+        }
+
+        #error {
+            font-size: 12px;
+            color: red;
+        }
+
+        form .inline{
+            width: 100%;
+        }
+
+        form .inline button{
+            float: left;
+            width: 45%;
+            margin: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>SR-Parser</h1>
+    <form method="POST" action="result" onsubmit="return validateData()">
+        {% csrf_token %}
+        <label for="req">Context Free Grammar</label>
+        <textarea rows="12" cols="40" name="req" id="req" required>
+{
+"CFG" : {
+"S": ["(L)", "a"],
+"L": ["L,S", "S"]
+},
+"Terminals" : [ "(", ")", "a", ","],
+"NonTerminals" : [ "L", "S" ],
+"Start" : "S"
+}
+        </textarea>
+        <input type="text" name="string" id="string" value="(a)" required />
+        <div id="error"></div>
+        <button type="submit">Create parsing table</button>
+        <div class="inline">
+            <button type="button" onclick="download()">Save</button>
+            <button type="button" onclick="load()">Load</button>
+        </div>
+    </form>
+    <div class="tut">
+        Eg: Consider the following Context free grammar:
+        <pre class="hljs">  
+        <code>
+S -> (L)|a
+L -> L,S|S
+        </code>
+      </pre> The following CFG would be written as follows:
+        <pre class="hljs">
+        <code>
+{
+"CFG" : {
+"S": ["(L)", "a"],
+"L": ["L,S", "S"]
+},
+"Terminals" : [ "(", ")", "a", ","],
+"NonTerminals" : [ "L", "S" ],
+"Start" : "S"
+}
+        </code>
+      </pre>
+
+    </div>
+</body>
+<script src="https://cdn.jsdelivr.net/npm/markdown-it@12.3.2/index.min.js"></script>
+<script>
+    function validateData(event){
+        const req = document.getElementById("req");
+        const errorDiv = document.getElementById("error");
+        try{
+            // console.log(req.value);
+            let error = false;
+            const reqJSON = JSON.parse(req.value);
+            if (!('CFG' in reqJSON)){
+                errorDiv.innerText = "Context Free Grammar not found.";
+                error = true;
+            }
+            if (!('Terminals' in reqJSON)){
+                errorDiv.innerText += "Terminals not found.";
+                error = true;
+            }
+            if (!('NonTerminals' in reqJSON)){
+                errorDiv.innerText += "Non-Terminals not found.";
+                error = true;
+            }
+            if (!('Start' in reqJSON)){
+                errorDiv.innerText += "Start symbol not found.";
+                error = true;
+            }
+
+            if (error){
+                return false;
+            }
+        }catch(exception){
+            errorDiv.innerText = "Request couldn't be parsed. Check the format.";
+            return false;
+        }
+        return true;
+    }
+
+    function download(event) {
+        const content = document.getElementById("req").value;
+        let a = document.createElement("a");
+        let file = new Blob([content], {type: "text/plain"});
+        a.href = URL.createObjectURL(file);
+        a.download = "SRPARSER.json";
+        a.click();
+    }
+
+    function load(){
+        const area = document.getElementById("req");
+        let upload = document.createElement("input");
+        upload.type = "file";
+        upload.accept = "application/json";
+        upload.click();
+
+        upload.addEventListener('change', ()=> {
+            if (upload.files.length === 0)
+                return;
+
+            const file = upload.files[0];
+            let reader = new FileReader();
+            reader.onload = (e) => {
+                const file1 = e.target.result;
+                const lines = file1.split(/\r\n|\n/);
+                area.value = lines.join('\n');
+            }
+            reader.onerror = (e) => alert(e.target.error.name);
+            // console.log(upload);
+            reader.readAsText(file);
+        })
+    }
+</script>
+</html>
